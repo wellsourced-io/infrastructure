@@ -4,6 +4,6 @@ useDefault = true
 [allowlist]
 paths = [
   "docker/.env.example",
-  "meilisearch/*.example",
-  "*.md"
+  "meilisearch/.*\\.example",
+  ".*\\.md$"
 ]
