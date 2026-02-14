@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  app:
+    image: ghcr.io/wellsourced-io/wellsourced:latest
+    command: ["node", "server.js"]
+    restart: unless-stopped
+    volumes:
+      - ../../brand-data/brands:/app/brand-data:ro
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+
+  meilisearch:
+    environment:
+      - MEILI_ENV=production
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  sync-worker:
+    image: ghcr.io/wellsourced-io/sync-worker:latest
+    restart: "no"

@@ -1,0 +1,66 @@
+version: "3.9"
+
+services:
+  # ---- Next.js Application (dev mode) ----
+  app:
+    build:
+      context: ../../wellsourced
+      dockerfile: Dockerfile
+      target: deps         # Stop at deps stage — we'll run dev server, not production build
+    working_dir: /app
+    command: sh -c "cp -r /app/node_modules /tmp/node_modules && npm run dev"
+    ports:
+      - "3000:3000"
+    environment:
+      - MEILISEARCH_HOST=http://meilisearch:7700
+      - MEILISEARCH_API_KEY=${MEILI_MASTER_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+    depends_on:
+      meilisearch:
+        condition: service_healthy
+    volumes:
+      - ../../wellsourced:/app                         # Full source mount for hot reload
+      - /app/node_modules                              # Anonymous volume to preserve node_modules
+      - ../../brand-data/brands:/app/brand-data:ro     # Brand JSON (read-only)
+
+  # ---- Meilisearch ----
+  meilisearch:
+    image: getmeili/meilisearch:v1.12
+    ports:
+      - "7700:7700"
+    environment:
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+      - MEILI_ENV=development
+    volumes:
+      - meili_data:/meili_data
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--spider", "http://localhost:7700/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---- Shopify Sync Worker ----
+  sync-worker:
+    build:
+      context: ../../wellsourced
+      dockerfile: Dockerfile.worker
+    environment:
+      - MEILISEARCH_HOST=http://meilisearch:7700
+      - MEILISEARCH_API_KEY=${MEILI_MASTER_KEY}
+      - SHOPIFY_STOREFRONT_TOKENS=${SHOPIFY_STOREFRONT_TOKENS}
+    depends_on:
+      meilisearch:
+        condition: service_healthy
+    volumes:
+      - ../../brand-data/brands:/app/brand-data:ro
+    profiles:
+      - worker
+    command: >
+      sh -c "npx tsx scripts/sync-shopify.ts && npx tsx scripts/reindex-search.ts"
+
+volumes:
+  meili_data:

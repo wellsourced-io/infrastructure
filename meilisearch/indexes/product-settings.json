@@ -1,0 +1,54 @@
+{
+  "products": {
+    "searchableAttributes": [
+      "title",
+      "description",
+      "brand_name",
+      "tags",
+      "categories"
+    ],
+    "filterableAttributes": [
+      "brand_slug",
+      "categories",
+      "price",
+      "ownership_type",
+      "certifications",
+      "country_manufactured",
+      "trust_tier_min",
+      "price_range",
+      "available"
+    ],
+    "sortableAttributes": [
+      "price",
+      "trust_tier_min",
+      "brand_name"
+    ],
+    "rankingRules": [
+      "words",
+      "typo",
+      "proximity",
+      "attribute",
+      "sort",
+      "exactness"
+    ]
+  },
+  "brands": {
+    "searchableAttributes": [
+      "name",
+      "description",
+      "categories",
+      "certifications"
+    ],
+    "filterableAttributes": [
+      "ownership_type",
+      "certifications",
+      "country_hq",
+      "country_manufactured",
+      "price_range",
+      "categories"
+    ],
+    "sortableAttributes": [
+      "name"
+    ]
+  }
+}
